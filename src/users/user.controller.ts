@@ -6,15 +6,20 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { PostDTO } from 'src/posts/post.dto';
 import { UserDTO } from './user.dto';
+import { UserEntity } from './user.entity';
 import { UserService } from './user.service';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async deleteUserById(@Param('id') id: string): Promise<string> {
     try {
@@ -25,6 +30,7 @@ export class UserController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Put(':id')
   async updateUserById(@Param('id') id: string, @Body() user: UserDTO) {
     try {
@@ -44,19 +50,25 @@ export class UserController {
   }
 
   @Get(':id')
-  getUserById(@Param('id') id: string): UserDTO {
-    const result = this.userService.getUserById(id);
-    return plainToInstance(UserDTO, result, {
-      excludeExtraneousValues: true,
-    });
+  async getUserById(@Param('id') id: string): Promise<UserDTO> {
+    const result = await this.userService.getUserById(id);
+    return this.plainUser(result);
   }
 
   @Get()
   async getAllUsers(): Promise<UserDTO[]> {
     const result = await this.userService.getAllUsers();
-    const plainArray = result.map((res) =>
-      plainToInstance(UserDTO, res, { excludeExtraneousValues: true }),
-    );
+    const plainArray = result.map((res) => this.plainUser(res));
     return plainArray;
+  }
+
+  plainUser(user: UserEntity): UserDTO {
+    const respl = plainToInstance(UserDTO, user, {
+      excludeExtraneousValues: true,
+    });
+    respl.posts = plainToInstance(PostDTO, user.posts, {
+      excludeExtraneousValues: true,
+    });
+    return respl;
   }
 }

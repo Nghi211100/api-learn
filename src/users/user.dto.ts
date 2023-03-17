@@ -1,11 +1,13 @@
 import { Expose, Transform } from 'class-transformer';
 import { BaseDTO } from 'src/common/base.dto';
+import { PostDTO } from 'src/posts/post.dto';
 
 export class UserDTO extends BaseDTO {
   @Expose()
   userName: string;
 
   password: string;
+
   @Expose()
   firstName: string;
 
@@ -21,4 +23,7 @@ export class UserDTO extends BaseDTO {
 
   @Expose()
   isActive: boolean;
+
+  @Expose()
+  posts: PostDTO[];
 }
