@@ -23,10 +23,10 @@ export class PostController {
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async deletePostById(@Param('id') id: string): Promise<string> {
-    try {
-      await this.postService.deleteById(id);
+    const result = await this.postService.deleteById(id);
+    if (result.affected === 1) {
       return 'Delete Successful!';
-    } catch (error) {
+    } else {
       return 'An error occurred while deleting, please check id of post!';
     }
   }

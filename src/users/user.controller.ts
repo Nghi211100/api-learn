@@ -22,10 +22,10 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async deleteUserById(@Param('id') id: string): Promise<string> {
-    try {
-      await this.userService.deleteById(id);
+    const result = await this.userService.deleteById(id);
+    if (result.affected === 1) {
       return 'Delete Successful!';
-    } catch {
+    } else {
       return 'An error occurred while deleting, please check id of user!';
     }
   }
