@@ -4,16 +4,23 @@ import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { UserDTO } from './user.dto';
 import { UserEntity } from './user.entity';
 import * as bcrypt from 'bcrypt';
+import { PostService } from 'src/posts/post.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private useRepository: Repository<UserEntity>,
+    private postService: PostService,
   ) {}
 
-  deleteById(id: string): Promise<DeleteResult> {
-    return this.useRepository.delete(id);
+  async deleteById(id: string): Promise<DeleteResult> {
+    const result = await this.postService.deleteByUserId(id);
+    if (result) {
+      return this.useRepository.delete(id);
+    } else {
+      return null;
+    }
   }
 
   updateUserById(id: string, user: UserDTO): Promise<UpdateResult> {
@@ -28,7 +35,11 @@ export class UserService {
     return this.useRepository.update(id, user);
   }
 
-  async saveUser(user: UserDTO): Promise<UserEntity> {
+  async saveUser(user: UserDTO): Promise<any> {
+    const result = await this.getUserByUserName(user.userName);
+    if (result) {
+      return 'This user name is exist!';
+    }
     user.password = await this.hashPassword(user.password);
     return this.useRepository.save(user);
   }

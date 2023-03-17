@@ -12,6 +12,12 @@ export class PostService {
     private postRepository: Repository<PostEntity>,
   ) {}
 
+  deleteByUserId(userId: string): Promise<any> {
+    return this.postRepository.delete({
+      user: { id: userId },
+    });
+  }
+
   deleteById(id: string): Promise<DeleteResult> {
     return this.postRepository.delete(id);
   }

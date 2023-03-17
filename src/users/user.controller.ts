@@ -25,7 +25,7 @@ export class UserController {
     try {
       await this.userService.deleteById(id);
       return 'Delete Successful!';
-    } catch (error) {
+    } catch {
       return 'An error occurred while deleting, please check id of user!';
     }
   }
