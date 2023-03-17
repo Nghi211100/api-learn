@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -10,15 +11,19 @@ import { UserModule } from './users/user.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'a',
-      database: 'api_learn',
-      entities: [UserEntity, PostEntity],
-      synchronize: true,
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get('HOST_PG'),
+        port: parseInt(configService.get('PORT_PG')),
+        username: configService.get('USERNAME_PG'),
+        password: configService.get('PASSWORD_PG'),
+        database: configService.get('DATABASE_PG'),
+        entities: [UserEntity, PostEntity],
+        synchronize: true,
+      }),
+      inject: [ConfigService],
     }),
     UserModule,
     AuthModule,
