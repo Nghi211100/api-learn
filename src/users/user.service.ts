@@ -1,16 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { UserDTO } from './user.dto';
 import { UserEntity } from './user.entity';
 import * as bcrypt from 'bcrypt';
 import { PostService } from 'src/posts/post.service';
+import { plainToInstance } from 'class-transformer';
+import { PostDTO } from 'src/posts/post.dto';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private useRepository: Repository<UserEntity>,
+    @Inject(forwardRef(() => PostService))
     private postService: PostService,
   ) {}
 
@@ -65,5 +68,31 @@ export class UserService {
     const saltRounds = 10;
     const salt = await bcrypt.genSalt(saltRounds);
     return await bcrypt.hash(password, salt);
+  }
+
+  async authorization(idCurrent: string, idInput: string) {
+    const result = await this.getUserById(idCurrent);
+    if (result.role === 'customer' && result.id !== idInput) {
+      return 'You do not have permission to execute this command!';
+    }
+    return null;
+  }
+
+  plainUser(user: UserEntity): UserDTO {
+    const respl = plainToInstance(UserDTO, user, {
+      excludeExtraneousValues: true,
+    });
+    respl.posts = plainToInstance(PostDTO, user.posts, {
+      excludeExtraneousValues: true,
+    });
+    return respl;
+  }
+
+  async checkUserActived(idCurrent: string) {
+    const result = await this.getUserById(idCurrent);
+    if (result.isActive === false) {
+      return 'You have not activated your account yet!';
+    }
+    return null;
   }
 }

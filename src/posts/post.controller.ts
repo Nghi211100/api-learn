@@ -11,9 +11,7 @@ import {
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { UserDTO } from 'src/users/user.dto';
 import { PostDTO } from './post.dto';
-import { PostEntity } from './post.entity';
 import { PostService } from './post.service';
 
 @Controller('posts')
@@ -22,7 +20,12 @@ export class PostController {
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  async deletePostById(@Param('id') id: string): Promise<string> {
+  async deletePostById(
+    @Param('id') id: string,
+    @Request() req,
+  ): Promise<string> {
+    const resultAuth = await this.postService.authorizationAcc(req.user.id, id);
+    if (resultAuth) return resultAuth;
     const result = await this.postService.deleteById(id);
     if (result.affected === 1) {
       return 'Delete Successful!';
@@ -33,8 +36,14 @@ export class PostController {
 
   @UseGuards(JwtAuthGuard)
   @Put(':id')
-  async updatePostById(@Param('id') id: string, @Body() post: PostDTO) {
+  async updatePostById(
+    @Param('id') id: string,
+    @Body() post: PostDTO,
+    @Request() req,
+  ) {
     try {
+      const result = this.postService.authorizationAcc(req.user.id, id);
+      if (result) return result;
       await this.postService.updatePostById(id, post);
       return this.getPostById(id);
     } catch (error) {
@@ -54,23 +63,13 @@ export class PostController {
   @Get(':id')
   async getPostById(@Param('id') id: string): Promise<PostDTO> {
     const result = await this.postService.getPostById(id);
-    return this.plainPost(result);
+    return this.postService.plainPost(result);
   }
 
   @Get()
   async getAllPosts(): Promise<PostDTO[]> {
     const result = await this.postService.getAllPosts();
-    const plainArray = result.map((res) => this.plainPost(res));
+    const plainArray = result.map((res) => this.postService.plainPost(res));
     return plainArray;
-  }
-
-  plainPost(post: PostEntity): PostDTO {
-    const respl = plainToInstance(PostDTO, post, {
-      excludeExtraneousValues: true,
-    });
-    respl.user = plainToInstance(UserDTO, post.user, {
-      excludeExtraneousValues: true,
-    });
-    return respl;
   }
 }

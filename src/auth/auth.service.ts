@@ -25,6 +25,8 @@ export class AuthService {
   async login(user: UserDTO) {
     const result = await this.validateUser(user);
     if (result !== 'failed') {
+      const checkUserActived = await this.userService.checkUserActived(user.id);
+      if (checkUserActived) return checkUserActived;
       const payload = { userName: result.userName, id: result.id };
       return {
         message: 'Login successful!',
@@ -32,5 +34,9 @@ export class AuthService {
       };
     }
     return 'An error occurred while logging in, please check username or password!';
+  }
+
+  register(user: UserDTO) {
+    return this.userService.saveUser(user);
   }
 }
