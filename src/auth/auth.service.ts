@@ -25,7 +25,9 @@ export class AuthService {
   async login(user: UserDTO) {
     const result = await this.validateUser(user);
     if (result !== 'failed') {
-      const checkUserActived = await this.userService.checkUserActived(user.id);
+      const checkUserActived = await this.userService.checkUserActived(
+        result.id,
+      );
       if (checkUserActived) return checkUserActived;
       const payload = { userName: result.userName, id: result.id };
       return {
