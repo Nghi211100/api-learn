@@ -1,2 +1,0 @@
-commands:
-  deploy: npm run build && railway deploy --force
