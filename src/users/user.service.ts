@@ -95,4 +95,16 @@ export class UserService {
     }
     return null;
   }
+
+  async getUserByRefreshToken(refresh_token: string, userName: string) {
+    const user = await this.getUserByUserName(userName);
+    if (user) {
+      const result = await bcrypt.compare(refresh_token, user.refresh_token);
+      if (result) {
+        return user;
+      }
+      return 'The token key is incorrect or expired';
+    }
+    return 'User not found';
+  }
 }

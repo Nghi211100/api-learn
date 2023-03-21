@@ -28,4 +28,7 @@ export class UserEntity extends BaseEntity {
 
   @OneToMany(() => PostEntity, (post) => post.user)
   posts: PostEntity[];
+
+  @Column({ default: null })
+  refresh_token: string;
 }

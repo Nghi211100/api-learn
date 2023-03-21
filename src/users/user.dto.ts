@@ -4,26 +4,33 @@ import { PostDTO } from 'src/posts/post.dto';
 
 export class UserDTO extends BaseDTO {
   @Expose()
-  userName: string;
+  userName?: string;
 
-  password: string;
-
-  @Expose()
-  firstName: string;
+  password?: string;
 
   @Expose()
-  lastName: string;
+  firstName?: string;
+
+  @Expose()
+  lastName?: string;
 
   @Expose()
   @Transform(({ obj }) => obj.firstName + ' ' + obj.lastName)
-  fullName;
+  fullName?;
 
   @Expose()
-  role: string;
+  role?: string;
 
   @Expose()
-  isActive: boolean;
+  isActive?: boolean;
 
   @Expose()
-  posts: PostDTO[];
+  posts?: PostDTO[];
+
+  refresh_token?: string;
+}
+
+export class TokenDTO {
+  userName: string;
+  id: string;
 }

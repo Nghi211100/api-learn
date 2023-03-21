@@ -4,12 +4,10 @@ import {
   Delete,
   Get,
   Param,
-  Post,
   Put,
   UseGuards,
   Request,
 } from '@nestjs/common';
-import { plainToInstance } from 'class-transformer';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { UserDTO } from './user.dto';
 import { UserService } from './user.service';
