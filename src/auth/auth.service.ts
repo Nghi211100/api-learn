@@ -11,6 +11,7 @@ import {
 import { UserService } from 'src/users/user.service';
 import * as bcrypt from 'bcrypt';
 import * as speakeasy from 'speakeasy';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +19,7 @@ export class AuthService {
     private jwtService: JwtService,
     private userService: UserService,
     private configService: ConfigService,
+    private mailerService: MailerService,
   ) {}
 
   async validateUser(user: UserLoginDTO) {
@@ -107,12 +109,22 @@ export class AuthService {
       code_secret: secret.base32,
     });
     const user = await this.userService.getUserById(id);
+    const plainUser = await this.userService.plainUser(user);
     const otp = speakeasy.totp({
       secret: user.code_secret,
       encoding: 'base32',
       digits: 6,
       window: 1,
       step: 60,
+    });
+    await this.mailerService.sendMail({
+      to: user.email,
+      subject: 'Welcome to my website',
+      template: './otp',
+      context: {
+        name: plainUser.fullName,
+        link: `${this.configService.get('DOMAIN')}/auth/active/${plainUser.id}`,
+      },
     });
     return otp;
   }
