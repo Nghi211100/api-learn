@@ -123,7 +123,7 @@ export class AuthService {
       template: './otp',
       context: {
         name: plainUser.fullName,
-        link: `${this.configService.get('DOMAIN')}/auth/active/${plainUser.id}`,
+        code: otp,
       },
     });
     return otp;
