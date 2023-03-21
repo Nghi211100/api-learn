@@ -110,7 +110,7 @@ export class AuthService {
     });
     const user = await this.userService.getUserById(id);
     const plainUser = await this.userService.plainUser(user);
-    const otp = speakeasy.totp({
+    const otp = await speakeasy.totp({
       secret: user.code_secret,
       encoding: 'base32',
       digits: 6,
