@@ -9,6 +9,7 @@ import { plainToInstance } from 'class-transformer';
 import { PostDTO } from 'src/posts/post.dto';
 import { MailerService } from '@nest-modules/mailer';
 import { ConfigService } from '@nestjs/config';
+import * as speakeasy from 'speakeasy';
 
 @Injectable()
 export class UserService {
@@ -48,7 +49,6 @@ export class UserService {
       return 'This email is exist!';
     }
     user.password = await this.hashPassword(user.password);
-
     const newUser = await this.useRepository.save(user);
     const plainUser = this.plainUser(newUser);
 

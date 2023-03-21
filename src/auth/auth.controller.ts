@@ -8,7 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
-import { UserDTO } from 'src/users/user.dto';
+import { UserDTO, UserLoginDTO } from 'src/users/user.dto';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
@@ -17,7 +17,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
-  login(@Body() user: UserDTO) {
+  login(@Body() user: UserLoginDTO) {
     return this.authService.login(user);
   }
 
@@ -41,6 +41,18 @@ export class AuthController {
 
   @Get('active/:id')
   acitvedAcount(@Param('id') id: string) {
-    return this.authService.acitvedAcount(id);
+    return this.authService.acitvedAccount(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('send-otp')
+  sendOTP(@Request() req) {
+    return this.authService.sendOTP(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('verify-otp')
+  verifyOTP(@Request() req, @Body() body) {
+    return this.authService.verifyOTP(req.user, body.code);
   }
 }

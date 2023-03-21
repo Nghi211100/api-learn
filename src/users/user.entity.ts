@@ -31,4 +31,7 @@ export class UserEntity extends BaseEntity {
 
   @Column({ default: null })
   refresh_token: string;
+
+  @Column({ default: null })
+  code_secret: string;
 }

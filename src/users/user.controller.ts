@@ -9,6 +9,7 @@ import {
   Request,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { TFAJwtAuthGuard } from 'src/auth/tfa-jwt.guard';
 import { UserDTO } from './user.dto';
 import { UserService } from './user.service';
 
@@ -16,7 +17,7 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(TFAJwtAuthGuard)
   @Delete(':id')
   async deleteUserById(
     @Param('id') id: string,

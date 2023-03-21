@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { TFAJwtAuthGuard } from 'src/auth/tfa-jwt.guard';
 import { PostDTO } from './post.dto';
 import { PostService } from './post.service';
 
@@ -18,7 +19,7 @@ import { PostService } from './post.service';
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(TFAJwtAuthGuard)
   @Delete(':id')
   async deletePostById(
     @Param('id') id: string,

@@ -1,7 +1,6 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
-import e from 'express';
 import { UserDTO } from 'src/users/user.dto';
 import { UserService } from 'src/users/user.service';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
