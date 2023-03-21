@@ -1,4 +1,12 @@
-import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { UserDTO } from 'src/users/user.dto';
 import { AuthService } from './auth.service';
@@ -26,8 +34,13 @@ export class AuthController {
   refreshToken(@Body() body, @Request() req) {
     const result = this.authService.refreshToken(
       body.refresh_token,
-      req.user.userName,
+      req.user.email,
     );
     return result;
+  }
+
+  @Get('active/:id')
+  acitvedAcount(@Param('id') id: string) {
+    return this.authService.acitvedAcount(id);
   }
 }

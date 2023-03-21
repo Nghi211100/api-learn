@@ -15,7 +15,9 @@ export class AuthService {
   ) {}
 
   async validateUser(user: UserDTO) {
-    const res = await this.userService.getUserByUserName(user.userName);
+    const res = await this.userService.getUserByObject({
+      email: user.email,
+    });
     const resPlain = plainToInstance(UserDTO, res);
     if (res && (await bcrypt.compare(user.password, resPlain.password))) {
       const { password, ...result } = resPlain;
@@ -31,21 +33,21 @@ export class AuthService {
         result.id,
       );
       if (checkUserActived) return checkUserActived;
-      const payload = { id: result.id, userName: result.userName };
+      const payload = { id: result.id, email: result.email };
       const resultToken = await this.createToken(payload, true);
       return {
         message: 'Login successful!',
         resultToken,
       };
     }
-    return 'An error occurred while logging in, please check username or password!';
+    return 'An error occurred while logging in, please check email or password!';
   }
 
   register(user: UserDTO) {
     return this.userService.saveUser(user);
   }
 
-  async refreshToken(refresh_token: string, userName: string) {
+  async refreshToken(refresh_token: string, email: string) {
     try {
       await this.jwtService.verify(refresh_token, {
         secret: this.configService.get('KEY_REFRESH'),
@@ -55,10 +57,10 @@ export class AuthService {
     }
     const resultUser = await this.userService.getUserByRefreshToken(
       refresh_token,
-      userName,
+      email,
     );
     if (typeof resultUser !== 'string') {
-      const payload = { userName: resultUser.userName, id: resultUser.id };
+      const payload = { email: resultUser.email, id: resultUser.id };
       return this.createToken(payload, false);
     }
     return resultUser;
@@ -78,6 +80,17 @@ export class AuthService {
       return { access_token: accessToken, refresh_token: refreshToken };
     } else {
       return { access_token: accessToken };
+    }
+  }
+
+  async acitvedAcount(id): Promise<string> {
+    try {
+      await this.userService.updateUserById(id, {
+        isActive: true,
+      });
+      return 'Your account is actived!';
+    } catch (error) {
+      return 'An error occurred while activing!';
     }
   }
 }

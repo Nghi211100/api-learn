@@ -5,7 +5,7 @@ import { Column, Entity, OneToMany } from 'typeorm';
 @Entity('users')
 export class UserEntity extends BaseEntity {
   @Column()
-  userName: string;
+  email: string;
 
   @Column()
   password: string;

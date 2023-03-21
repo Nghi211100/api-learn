@@ -4,7 +4,7 @@ import { PostDTO } from 'src/posts/post.dto';
 
 export class UserDTO extends BaseDTO {
   @Expose()
-  userName?: string;
+  email?: string;
 
   password?: string;
 
@@ -31,6 +31,6 @@ export class UserDTO extends BaseDTO {
 }
 
 export class TokenDTO {
-  userName: string;
+  email: string;
   id: string;
 }

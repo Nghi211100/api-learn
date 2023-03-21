@@ -7,6 +7,8 @@ import * as bcrypt from 'bcrypt';
 import { PostService } from 'src/posts/post.service';
 import { plainToInstance } from 'class-transformer';
 import { PostDTO } from 'src/posts/post.dto';
+import { MailerService } from '@nest-modules/mailer';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UserService {
@@ -15,6 +17,8 @@ export class UserService {
     private useRepository: Repository<UserEntity>,
     @Inject(forwardRef(() => PostService))
     private postService: PostService,
+    private mailerService: MailerService,
+    private configService: ConfigService,
   ) {}
 
   async deleteById(id: string): Promise<DeleteResult> {
@@ -39,17 +43,31 @@ export class UserService {
   }
 
   async saveUser(user: UserDTO): Promise<any> {
-    const result = await this.getUserByUserName(user.userName);
-    if (result) {
-      return 'This user name is exist!';
+    const resultUserEmail = await this.getUserByObject({ email: user.email });
+    if (resultUserEmail) {
+      return 'This email is exist!';
     }
     user.password = await this.hashPassword(user.password);
-    return this.useRepository.save(user);
+
+    const newUser = await this.useRepository.save(user);
+    const plainUser = this.plainUser(newUser);
+
+    await this.mailerService.sendMail({
+      to: user.email,
+      subject: 'Welcome to my website',
+      template: './activedAccount',
+      context: {
+        name: plainUser.fullName,
+        link: `${this.configService.get('DOMAIN')}/auth/active/${plainUser.id}`,
+      },
+    });
+
+    return newUser;
   }
 
-  getUserByUserName(userName: string): Promise<UserEntity> {
+  getUserByObject(object): Promise<UserEntity> {
     return this.useRepository.findOne({
-      where: { userName: userName },
+      where: object,
     });
   }
 
@@ -96,8 +114,8 @@ export class UserService {
     return null;
   }
 
-  async getUserByRefreshToken(refresh_token: string, userName: string) {
-    const user = await this.getUserByUserName(userName);
+  async getUserByRefreshToken(refresh_token: string, email: string) {
+    const user = await this.getUserByObject({ email: email });
     if (user) {
       const result = await bcrypt.compare(refresh_token, user.refresh_token);
       if (result) {
