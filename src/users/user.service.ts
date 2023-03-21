@@ -7,9 +7,8 @@ import * as bcrypt from 'bcrypt';
 import { PostService } from 'src/posts/post.service';
 import { plainToInstance } from 'class-transformer';
 import { PostDTO } from 'src/posts/post.dto';
-import { MailerService } from '@nest-modules/mailer';
 import { ConfigService } from '@nestjs/config';
-import * as speakeasy from 'speakeasy';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class UserService {
