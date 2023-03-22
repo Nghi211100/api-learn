@@ -8,6 +8,7 @@ import {
   Put,
   Request,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -68,8 +69,11 @@ export class PostController {
   }
 
   @Get()
-  async getAllPosts(): Promise<PostDTO[]> {
-    const result = await this.postService.getAllPosts();
+  async getAllPosts(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+  ): Promise<PostDTO[]> {
+    const result = await this.postService.getAllPosts(page, limit);
     const plainArray = result.map((res) => this.postService.plainPost(res));
     return plainArray;
   }

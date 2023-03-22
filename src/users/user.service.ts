@@ -77,8 +77,15 @@ export class UserService {
     });
   }
 
-  getAllUsers(): Promise<UserEntity[]> {
-    return this.useRepository.find({ relations: ['posts'] });
+  getAllUsers(page = 1, limit = 99): Promise<UserEntity[]> {
+    return this.useRepository.find({
+      relations: ['posts'],
+      skip: (page - 1) * limit,
+      take: limit,
+      order: {
+        created_at: 'DESC',
+      },
+    });
   }
 
   async hashPassword(password: string): Promise<string> {

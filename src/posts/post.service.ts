@@ -42,10 +42,17 @@ export class PostService {
     });
   }
 
-  getAllPosts(): Promise<PostEntity[]> {
-    return this.postRepository.find({
+  async getAllPosts(page = 1, limit = 99) {
+    const result = await this.postRepository.find({
       relations: ['user'],
+      order: {
+        created_at: 'desc',
+      },
+      skip: (page - 1) * limit,
+      take: limit,
     });
+
+    return result;
   }
 
   plainPost(post: PostEntity): PostDTO {
@@ -72,7 +79,7 @@ export class PostService {
         return null;
       }
     } catch (error) {
-      return 'An error occurred while deleting, please check id of post!';
+      return 'An error occurred, please check id of post!';
     }
   }
 }

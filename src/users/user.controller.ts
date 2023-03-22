@@ -7,6 +7,7 @@ import {
   Put,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { TFAJwtAuthGuard } from 'src/auth/tfa-jwt.guard';
@@ -57,8 +58,11 @@ export class UserController {
   }
 
   @Get()
-  async getAllUsers(): Promise<UserDTO[]> {
-    const result = await this.userService.getAllUsers();
+  async getAllUsers(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+  ): Promise<UserDTO[]> {
+    const result = await this.userService.getAllUsers(page, limit);
     const plainArray = result.map((res) => this.userService.plainUser(res));
     return plainArray;
   }
