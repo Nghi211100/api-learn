@@ -8,7 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
-import { UserDTO, UserLoginDTO } from 'src/users/user.dto';
+import { CreateUserDTO, UserDTO, UserLoginDTO } from 'src/users/user.dto';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
@@ -22,7 +22,7 @@ export class AuthController {
   }
 
   @Post('register')
-  createUser(@Body() user: UserDTO): UserDTO {
+  createUser(@Body() user: CreateUserDTO): UserDTO {
     const result = this.authService.register(user);
     return plainToInstance(UserDTO, result, {
       excludeExtraneousValues: true,

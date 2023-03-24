@@ -1,7 +1,7 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
-import { UserDTO } from './user.dto';
+import { CreateUserDTO, UserDTO } from './user.dto';
 import { UserEntity } from './user.entity';
 import * as bcrypt from 'bcrypt';
 import { PostService } from 'src/posts/post.service';
@@ -42,7 +42,7 @@ export class UserService {
     return this.useRepository.update(id, user);
   }
 
-  async saveUser(user: UserDTO): Promise<any> {
+  async saveUser(user: CreateUserDTO): Promise<any> {
     const resultUserEmail = await this.getUserByObject({ email: user.email });
     if (resultUserEmail) {
       return 'This email is exist!';

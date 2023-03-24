@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { plainToInstance } from 'class-transformer';
 import {
+  CreateUserDTO,
   TokenDTO,
   TokenTFADTO,
   UserDTO,
@@ -29,6 +30,7 @@ export class AuthService {
 
     const resPlain = plainToInstance(UserDTO, res);
     if (res && (await bcrypt.compare(user.password, resPlain.password))) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...result } = resPlain;
       return result;
     }
@@ -52,7 +54,7 @@ export class AuthService {
     return 'An error occurred while logging in, please check email or password!';
   }
 
-  register(user: UserDTO) {
+  register(user: CreateUserDTO) {
     return this.userService.saveUser(user);
   }
 
