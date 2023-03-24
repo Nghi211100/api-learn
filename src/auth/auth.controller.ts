@@ -1,13 +1,18 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
+  HttpStatus,
   Param,
   Post,
   Request,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
+import { Response } from 'express';
+import { responseDTO } from 'src/common/base.respone';
 import { CreateUserDTO, UserDTO, UserLoginDTO } from 'src/users/user.dto';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -17,24 +22,32 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
-  login(@Body() user: UserLoginDTO) {
-    return this.authService.login(user);
+  login(@Body() user: UserLoginDTO, @Res() res: Response) {
+    return this.authService.login(user, res);
   }
 
   @Post('register')
-  createUser(@Body() user: CreateUserDTO): UserDTO {
-    const result = this.authService.register(user);
-    return plainToInstance(UserDTO, result, {
+  async createUser(@Body() user: CreateUserDTO, @Res() res) {
+    const result = await this.authService.register(user);
+    const resultPlain = plainToInstance(UserDTO, result, {
       excludeExtraneousValues: true,
     });
+    const resData: responseDTO = {
+      status: HttpStatus.OK,
+      message:
+        'Register successfull, please check your email to activate your account!',
+      data: resultPlain,
+    };
+    res.status(HttpStatus.OK).json(resData);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('refresh')
-  refreshToken(@Body() body, @Request() req) {
+  refreshToken(@Body() body, @Request() req, @Res() res: Response) {
     const result = this.authService.refreshToken(
       body.refresh_token,
       req.user.email,
+      res,
     );
     return result;
   }
@@ -46,8 +59,17 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('send-otp')
-  sendOTP(@Request() req) {
-    return this.authService.sendOTP(req.user.id);
+  async sendOTP(@Request() req, @Res() res: Response) {
+    try {
+      await this.authService.sendOTP(req.user.id);
+      const resData: responseDTO = {
+        status: HttpStatus.OK,
+        message: 'Send OTP to email address successful!',
+      };
+      res.status(HttpStatus.OK).json(resData);
+    } catch (error) {
+      throw new BadRequestException();
+    }
   }
 
   @UseGuards(JwtAuthGuard)

@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  HttpStatus,
+  NotImplementedException,
+  NotAcceptableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { plainToInstance } from 'class-transformer';
@@ -13,6 +18,8 @@ import { UserService } from 'src/users/user.service';
 import * as bcrypt from 'bcrypt';
 import * as speakeasy from 'speakeasy';
 import { MailerService } from '@nestjs-modules/mailer';
+import { Response } from 'express';
+import { responseDTO } from 'src/common/base.respone';
 
 @Injectable()
 export class AuthService {
@@ -37,7 +44,7 @@ export class AuthService {
     return 'failed';
   }
 
-  async login(user: UserLoginDTO) {
+  async login(user: UserLoginDTO, res: Response) {
     const result = await this.validateUser(user);
     if (result !== 'failed') {
       const checkUserActived = await this.userService.checkUserActived(
@@ -46,25 +53,31 @@ export class AuthService {
       if (checkUserActived) return checkUserActived;
       const payload = { id: result.id, email: result.email };
       const resultToken = await this.createToken(payload, true);
-      return {
+
+      const resData: responseDTO = {
+        status: HttpStatus.OK,
         message: 'Login successful!',
-        resultToken,
+        data: resultToken,
       };
+
+      res.status(HttpStatus.OK).json(resData);
     }
-    return 'An error occurred while logging in, please check email or password!';
+    throw new NotImplementedException(
+      'An error occurred while logging in, please check email or password!',
+    );
   }
 
-  register(user: CreateUserDTO) {
-    return this.userService.saveUser(user);
+  async register(user: CreateUserDTO) {
+    return await this.userService.saveUser(user);
   }
 
-  async refreshToken(refresh_token: string, email: string) {
+  async refreshToken(refresh_token: string, email: string, res: Response) {
     try {
       await this.jwtService.verify(refresh_token, {
         secret: this.configService.get('KEY_REFRESH'),
       });
     } catch (error) {
-      return 'The token key is incorrect or expired';
+      throw new NotAcceptableException('The token key is incorrect or expired');
     }
     const resultUser = await this.userService.getUserByRefreshToken(
       refresh_token,
@@ -72,9 +85,14 @@ export class AuthService {
     );
     if (typeof resultUser !== 'string') {
       const payload = { email: resultUser.email, id: resultUser.id };
-      return this.createToken(payload, false);
+      const resultToken = await this.createToken(payload, false);
+      const resData: responseDTO = {
+        status: HttpStatus.OK,
+        message: 'Delete Successful!',
+        data: resultToken,
+      };
+      res.status(HttpStatus.OK).json(resData);
     }
-    return resultUser;
   }
 
   async createToken(payload: TokenDTO, refresh: boolean) {
@@ -119,7 +137,7 @@ export class AuthService {
       window: 1,
       step: 60,
     });
-    await this.mailerService.sendMail({
+    this.mailerService.sendMail({
       to: user.email,
       subject: 'Welcome to my website',
       template: './otp',

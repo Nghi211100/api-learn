@@ -1,4 +1,13 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+  ForbiddenException,
+  NotFoundException,
+  NotAcceptableException,
+  NotImplementedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { CreateUserDTO, UserDTO } from './user.dto';
@@ -22,11 +31,15 @@ export class UserService {
   ) {}
 
   async deleteById(id: string): Promise<DeleteResult> {
-    const result = await this.postService.deleteByUserId(id);
-    if (result) {
-      return this.useRepository.delete(id);
-    } else {
-      return null;
+    try {
+      const result = await this.postService.deleteByUserId(id);
+      if (result) {
+        return this.useRepository.delete(id);
+      } else {
+        return null;
+      }
+    } catch (error) {
+      throw new NotFoundException(`User's Id ${id} not found!`);
     }
   }
 
@@ -45,13 +58,13 @@ export class UserService {
   async saveUser(user: CreateUserDTO): Promise<any> {
     const resultUserEmail = await this.getUserByObject({ email: user.email });
     if (resultUserEmail) {
-      return 'This email is exist!';
+      throw new NotImplementedException('This email is exist!');
     }
     user.password = await this.hashPassword(user.password);
     const newUser = await this.useRepository.save(user);
     const plainUser = this.plainUser(newUser);
 
-    await this.mailerService.sendMail({
+    this.mailerService.sendMail({
       to: user.email,
       subject: 'Welcome to my website',
       template: './activedAccount',
@@ -97,7 +110,9 @@ export class UserService {
   async authorization(idCurrent: string, idInput: string) {
     const result = await this.getUserById(idCurrent);
     if (result.role === 'customer' && result.id !== idInput) {
-      return 'You do not have permission to execute this command!';
+      throw new UnauthorizedException(
+        'You do not have permission to execute this command!',
+      );
     }
     return null;
   }
@@ -115,7 +130,7 @@ export class UserService {
   async checkUserActived(idCurrent: string) {
     const result = await this.getUserById(idCurrent);
     if (result.isActive === false) {
-      return 'You have not activated your account yet!';
+      throw new ForbiddenException('You have not activated your account yet!');
     }
     return null;
   }
@@ -127,8 +142,8 @@ export class UserService {
       if (result) {
         return user;
       }
-      return 'The token key is incorrect or expired';
+      throw new NotAcceptableException('The token key is incorrect or expired');
     }
-    return 'User not found';
+    throw new NotFoundException(`User's email not found!`);
   }
 }
